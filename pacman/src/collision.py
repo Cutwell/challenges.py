@@ -1,12 +1,11 @@
-import pygame
-
-mask_surface = pygame.image.load("src/images/mask.png").convert()
+from maze import MAZE
 
 class CollisionHelper:
     def __init__(self, game):
         self.game = game
-        self.width = 16 * self.game.scale
-        self.height = 16 * self.game.scale
+        self.tile_size = 8
+        self.width = 8
+        self.height = 8
 
     def overlap(self, x1, y1, x2, y2):
         return (
@@ -14,44 +13,31 @@ class CollisionHelper:
             abs(y1 - y2) * 2 < (self.height)
         )
 
-    def blocked(self, next_x, next_y):
+    def blocked(self, next_x, next_y, is_ghost=False):
         """
-        Check all edges of the 16x16 hitbox against the collision mask.
-
-        black pixel = blocked
-        white pixel = walkable
+        Check all corners of the 16x16 hitbox against the MAZE grid.
         """
-
-        # hitbox corners + edge midpoints
+        # hitbox corners
         sample_points = [
-            # corners
             (next_x, next_y),
             (next_x + self.width - 1, next_y),
             (next_x, next_y + self.height - 1),
             (next_x + self.width - 1, next_y + self.height - 1),
-            # edge centers
-            (next_x + self.width // 2, next_y),
-            (next_x + self.width // 2, next_y + self.height - 1),
-            (next_x, next_y + self.height // 2),
-            (next_x + self.width - 1, next_y + self.height // 2),
         ]
 
         for px, py in sample_points:
-            px = int(px)
-            py = int(py)
+            # convert virtual pixel coords -> grid coords
+            gx = int(px // self.tile_size)
+            gy = int(py // self.tile_size)
 
             # prevent leaving screen
-            if px < 0 or py < 0 or px >= self.game.game_width or py >= self.game.game_height:
+            if gx < 0 or gy < 0 or gy >= len(MAZE) or gx >= len(MAZE[0]):
                 return True
 
-            # convert scaled coords -> original mask coords
-            mx = px // self.game.scale
-            my = py // self.game.scale
-
-            color = mask_surface.get_at((mx, my))
-
-            # black = wall
-            if color.r < 20 and color.g < 20 and color.b < 20:
+            char = MAZE[gy][gx]
+            if char == "#":
+                return True
+            if char == "-" and is_ghost:
                 return True
 
         return False

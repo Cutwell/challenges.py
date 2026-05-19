@@ -12,7 +12,7 @@ class Ghost:
         self.y = y
         self.collision_helper = CollisionHelper(self.game)
         self.facing = "down"
-        self.speed = 1
+        self.speed = 2
         self.state = "alive"
 
     def _next_pos_by(self, facing, x, y, amount):
@@ -28,7 +28,7 @@ class Ghost:
     def _can_move(self, facing, x, y):
         for step in range(1, LOOKAHEAD + 1, self.speed):
             sx, sy = self._next_pos_by(facing, x, y, step)
-            if self.collision_helper.blocked(sx, sy, is_ghost=True):
+            if self.collision_helper.blocked(sx, sy):
                 return False
         return True
 
@@ -56,21 +56,3 @@ class Ghost:
             next_x, next_y = self._next_pos_by(self.facing, self.x, self.y, self.speed)
             self.x = next_x
             self.y = next_y
-
-    def draw(self, canvas, offset_y=0):
-        # Center 16x16 sprite over 8x8 hitbox (offset 4, 4)
-        draw_x = self.x - 4
-        draw_y = self.y - 4 + offset_y
-
-        if self.state == "dead":
-            frame = self.game.sheet.get_frame(
-                f"ghost_dead_{self.facing}", self.game.tick
-            )
-        elif self.game.player.is_powered_up():
-            state = "frightened" if self.game.player.powerup_ms > 2000 else "flashing"
-            frame = self.game.sheet.get_frame(f"ghost_{state}", self.game.tick)
-        else:
-            frame = self.game.sheet.get_frame(
-                f"ghost_{self.color}_{self.facing}", self.game.tick
-            )
-        canvas.blit(frame, (draw_x, draw_y))

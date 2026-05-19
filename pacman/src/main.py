@@ -10,13 +10,10 @@ WIDTH = GAME_WIDTH
 HEIGHT = GAME_HEIGHT + UI_HEIGHT
 TITLE = "Pac-man"
 
-game = Game(images, keys, width=GAME_WIDTH, height=GAME_HEIGHT, scale=SCALE)
-game.window_width = WIDTH
-game.window_height = HEIGHT
-game.y_offset = UI_HEIGHT
+game = Game(images, keys, scale=SCALE)
 
 def draw():
-    game.draw()
+    game.draw(screen)
 
 isSetup = False
 

@@ -11,7 +11,7 @@ class Player:
         self.y = y
         self.facing = "right"
         self.queued_facing = None  # buffered turn request
-        self.speed = 2
+        self.speed = 1
         self.collision_helper = CollisionHelper(self.game)
         self.death_tick = None
         self.powerup_end_ms = 0
@@ -20,12 +20,16 @@ class Player:
     def powerup_ms(self):
         return max(0, self.powerup_end_ms - pygame.time.get_ticks())
 
-    def draw(self):
+    def draw(self, canvas, offset_y=0):
+        # Center 16x16 sprite over 8x8 hitbox (offset 4, 4)
+        draw_x = self.x - 4
+        draw_y = self.y - 4 + offset_y
+
         if self.game.state == "game_running":
             frame = self.game.sheet.get_frame(
                 f"pacman_walk_{self.facing}", self.game.tick
             )
-            self.game.screen.surface.blit(frame, (self.x, self.y + self.game.y_offset))
+            canvas.blit(frame, (draw_x, draw_y))
 
         elif self.game.state == "game_over":
             elapsed = self.game.tick - self.death_tick
@@ -34,7 +38,7 @@ class Player:
                 frame = self.game.sheet.get_frame_once(
                     "pacman_die", elapsed, frame_speed=6
                 )
-                self.game.screen.surface.blit(frame, (self.x, self.y + self.game.y_offset))
+                canvas.blit(frame, (draw_x, draw_y))
 
     def on_key_down(self, key):
         if key is self.game.keys.W or key is self.game.keys.UP:
@@ -49,7 +53,7 @@ class Player:
     def _can_move(self, facing, x, y):
         for step in range(1, LOOKAHEAD + 1, self.speed):
             sx, sy = self._next_pos_by(facing, x, y, step)
-            if self.collision_helper.blocked(sx, sy):
+            if self.collision_helper.blocked(sx, sy, is_ghost=False):
                 return False
         return True
 
